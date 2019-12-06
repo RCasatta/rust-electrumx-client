@@ -12,6 +12,8 @@ use raw_response::{GetBlockHeaderRawResponse, GetBlockHeadersRawResponse, Estima
                    GetListUnspentRawResponse, BroadcastTransactionRawResponse, GetTransactionRawResponse};
 use response::{GetBlockHeadersResponse, GetBalanceResponse, GetHistoryResponse, GetListUnspentResponse};
 use tools;
+use serde_json::Value;
+
 
 pub struct ElectrumxClient<A: ToSocketAddrs> {
     #[allow(dead_code)]
@@ -168,6 +170,22 @@ impl<A: ToSocketAddrs + Clone> Electrumx for ElectrumxClient<A> {
         self.call(req)?;
         let raw = self.recv()?;
         Ok(raw)
+    }
+
+    fn blockchain_info(&mut self) -> Result<Value, Box<Error>> {
+        let req = Request::new(0, "blockchain.info", vec![]);
+        self.call(req)?;
+        let raw = self.recv()?;
+        let value: Value = serde_json::from_slice(&raw)?;
+        Ok(value)
+    }
+
+    fn blockchain_headers(&mut self) -> Result<Value, Box<Error>> {
+        let req = Request::new(0, "blockchain.headers.subscribe", vec![]);
+        self.call(req)?;
+        let raw = self.recv()?;
+        let value: Value = serde_json::from_slice(&raw)?;
+        Ok(value)
     }
 }
 
